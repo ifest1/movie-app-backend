@@ -1,4 +1,10 @@
 from django.db import models
+from django.conf import settings
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.contrib.auth.models import AbstractUser
+from rest_framework.authtoken.models import Token
+from .managers import AccountManager
 
 class Movie(models.Model):
     imdb_title_id = models.CharField(primary_key=True, max_length=45)
@@ -24,3 +30,37 @@ class Movie(models.Model):
     reviews_from_users = models.CharField(max_length=45)
     reviews_from_critics =models.CharField(max_length=45)
 
+class Account(AbstractUser):
+    username = None
+
+    email = models.EmailField(verbose_name="email", max_length=65, unique=True)
+    username = models.CharField(max_length=30, unique=True)
+    date_joined = models.DateTimeField(verbose_name='date joined', auto_now_add=True)
+    last_login = models.DateTimeField(verbose_name='last login', auto_now=True)
+    is_admin = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default=False)
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = []
+
+    objects = AccountManager()
+
+    def __str__(self):
+        return self.email
+
+
+class UserFavoriteMovies(models.Model):
+    user = models.ForeignKey(Account, on_delete=models.CASCADE)
+    imdb_title = models.ForeignKey(Movie, on_delete=models.CASCADE)
+
+class UserSuggestions(models.Model):
+    user = models.ForeignKey(Account, on_delete=models.CASCADE)
+    imdb_title = models.ForeignKey(Movie, on_delete=models.CASCADE)
+
+
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def create_auth_token(sender, instance=None, created=False, **kwargs):
+    if created:
+        Token.objects.create(user=instance)
