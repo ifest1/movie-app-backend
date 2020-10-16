@@ -55,10 +55,15 @@ class UserFavoriteMovies(models.Model):
     user = models.ForeignKey(Account, on_delete=models.CASCADE)
     imdb_title = models.ForeignKey(Movie, on_delete=models.CASCADE)
 
+    class Meta:
+        unique_together = (("user", "imdb_title"))
+
 class UserSuggestions(models.Model):
     user = models.ForeignKey(Account, on_delete=models.CASCADE)
     imdb_title = models.ForeignKey(Movie, on_delete=models.CASCADE)
 
+    class Meta:
+        unique_together = (("user", "imdb_title"))
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_auth_token(sender, instance=None, created=False, **kwargs):
