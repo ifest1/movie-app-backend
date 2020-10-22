@@ -29,6 +29,7 @@ class Movie(models.Model):
     metascore = models.CharField(max_length=45)
     reviews_from_users = models.CharField(max_length=45)
     reviews_from_critics =models.CharField(max_length=45)
+    
 
 class Account(AbstractUser):
     username = None
