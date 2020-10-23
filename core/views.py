@@ -17,6 +17,9 @@ from .serializers import UserSerializer
 from .recsys import Recommender
 import pandas as pd
 
+rec = Recommender(["actors", "director", "genre", "description"])
+rec.init_sys(Movie.objects.all().values())
+
 class MovieViewSet(viewsets.ModelViewSet):
     queryset = Movie.objects.all()
     serializer_class = MovieSerializer
@@ -30,7 +33,7 @@ class Registration(generics.CreateAPIView):
     permission_class = (AllowAny, )
 
 class FavoriteMovies(APIView):
-    # returns user favorite movies
+    # returns
     def get(self, request):
         try:
             user = Token.objects.get(key=request.headers['Token']).user
@@ -43,7 +46,7 @@ class FavoriteMovies(APIView):
         except:
             return Response({'status': 'bad request'})
 
-    # add favorite movie
+    # add 
     def post(self, request):
         try:
             user = Token.objects.get(key=request.headers['Token']).user
@@ -67,16 +70,13 @@ class UserSuggestions(APIView):
         try:
             user = Token.objects.get(key=request.headers['Token']).user
             movies = UserSuggestions.objects.get(user_id=user.id)
-            movies = MovieSerializer(movie).data
-            
+            movies = MovieSerializer(movies).data
             return Response(movies)
-        
         except:
             return Response({'status': 'bad request'})
 
 class ViewTest(APIView):
-    def get(self, request):
-        movies = Movie.objects.all().values('genre', 'director', 'actors')
-        rec = Recommender(movies)
-        print(rec.get_df().head(10))
-        return Response({'status': 'test'})
+    def get(self, request, imdb_title_id):
+        movies = rec.get_recommendations(imdb_title_id)
+        movies = movies.to_dict('records')
+        return Response(movies)
