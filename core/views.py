@@ -4,15 +4,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import AllowAny
-from rest_framework.authtoken.models import Token
 
 from .models import Movie
-from .models import Account
-from .models import UserFavoriteMovies
-from .models import UserSuggestions
 
 from .serializers import MovieSerializer
-from .serializers import UserSerializer
 
 from .recsys import Recommender
 import pandas as pd
@@ -21,61 +16,13 @@ rec = Recommender(["actors", "director", "genre", "description"])
 rec.init_sys(Movie.objects.all().values())
 
 class MovieViewSet(viewsets.ModelViewSet):
-    queryset = Movie.objects.all()
+    queryset = Movie.objects.extra(select={'votes': 'CAST(votes as INT)'}, order_by=['votes']).reverse()
     serializer_class = MovieSerializer
 
     def get_paginated_response(self, data):
         return Response(data)
 
-class Registration(generics.CreateAPIView):
-    queryset = Account.objects.all()
-    serializer_class = UserSerializer
-    permission_class = (AllowAny, )
-
-class FavoriteMovies(APIView):
-    # returns
-    def get(self, request):
-        try:
-            user = Token.objects.get(key=request.headers['Token']).user
-            user_favorites = user.userfavoritemovies_set.values()
-            user_movies = [Movie.objects.get(imdb_title_id=user_favorite['imdb_title_id']) for user_favorite in user_favorites]
-            user_movies = [MovieSerializer(user_movie).data for user_movie in user_movies]
-            
-            return Response(user_movies)
-
-        except:
-            return Response({'status': 'bad request'})
-
-    # add 
-    def post(self, request):
-        try:
-            user = Token.objects.get(key=request.headers['Token']).user
-            imdb_title_id = request.data['imdb_title_id']
-            movie = Movie.objects.get(imdb_title_id=imdb_title_id)
-            movie = MovieSerializer(movie).data
-            favorite_movie = UserFavoriteMovies(user_id=user.id, imdb_title_id=imdb_title_id)
-            favorite_movie.save()
-
-            return Response(movie)
-
-        except:
-            return Response({'status': 'bad request'})
-
-    def delete(self, request):
-        pass
-
-
-class UserSuggestions(APIView):
-    def get(self, request):
-        try:
-            user = Token.objects.get(key=request.headers['Token']).user
-            movies = UserSuggestions.objects.get(user_id=user.id)
-            movies = MovieSerializer(movies).data
-            return Response(movies)
-        except:
-            return Response({'status': 'bad request'})
-
-class ViewTest(APIView):
+class Recommendation(APIView):
     def get(self, request, imdb_title_id):
         movies = rec.get_recommendations(imdb_title_id)
         movies = movies.to_dict('records')

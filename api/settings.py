@@ -13,9 +13,7 @@ SECRET_KEY = '7&8asautz%)xc^x$8++pwzc++x9@!&ti^y@tjpz@u6=@0!=i%e'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
-AUTH_USER_MODEL = 'core.Account'
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '10.0.2.2']
 
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',

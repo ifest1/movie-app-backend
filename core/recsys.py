@@ -14,6 +14,7 @@ class Recommender:
 
     def init_sys(self, movies):
         self.df = pd.DataFrame(list(movies))
+        
         self.set_actors()
         self.set_directors()
         self.set_genres()
@@ -51,7 +52,7 @@ class Recommender:
         'reviews_from_users',
         'reviews_from_critics']]
 
-    def get_df(self):
+    def get_movies(self):
         return self.df
 
     def build_count_matrix(self):
@@ -100,5 +101,5 @@ class Recommender:
         x['actors_s'] = ' '.join(x['actors_s'])
         x['director_s'] = ' '.join(x['director_s'])
         x['genre_s'] = ' '.join(x['genre_s'])
-        
+
         return x['actors_s'] + x['director_s'] * 3 + x['description_s']
